@@ -120,18 +120,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 <script>
 const API = location.origin;
 let ROOM = "", USER = "", pollTimer = null;
-let ROOM_CODE = null;
-async function fetchRoomCode() {
-  try { const r = await fetch(API + "/api/health"); const d = await r.json(); ROOM_CODE = d.room; } catch { ROOM_CODE = null; }
-}
-function joinRoom() {
+async function joinRoom() {
   const code = document.getElementById("code-input").value.trim();
   const errEl = document.getElementById("join-error");
   errEl.textContent = "";
   if (!code) { errEl.textContent = "请输入房间码"; return; }
-  if (ROOM_CODE && code !== ROOM_CODE) { errEl.textContent = "房间码错误"; return; }
-  ROOM = code;
-  showUsernameModal();
+  try {
+    const res = await fetch(API + "/api/room/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if (!data.ok) { errEl.textContent = data.error || "房间码错误"; return; }
+    ROOM = code;
+    showUsernameModal();
+  } catch (e) {
+    errEl.textContent = "无法连接服务，请稍后重试";
+  }
 }
 function showUsernameModal() {
   const overlay = document.createElement("div");
@@ -256,11 +262,9 @@ async function loadFiles() {
 function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
 function fmtTime(ts) { return new Date(ts).toLocaleTimeString("zh-CN", {hour:"2-digit",minute:"2-digit"}); }
 function fmtSize(b) { if (b<1024) return b+"B"; if (b<1048576) return (b/1024).toFixed(1)+"KB"; if (b<1073741824) return (b/1048576).toFixed(1)+"MB"; return (b/1073741824).toFixed(2)+"GB"; }
-(async function init() {
-  await fetchRoomCode();
-  if (ROOM_CODE) document.getElementById("code-input").placeholder = "输入房间码";
+(function init() {
   const saved = localStorage.getItem("hub-user");
-  if (saved) document.getElementById("code-input").value = ROOM_CODE || "";
+  if (saved) USER = saved;
   document.getElementById("code-input").focus();
   document.getElementById("code-input").onkeydown = e => { if (e.key === "Enter") joinRoom(); };
 })();

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+<title id="title">easy-LocalHub architecture</title><desc id="desc">LAN devices use browsers to connect to one Node.js host that stores files and messages locally.</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eef7ff"/><stop offset="1" stop-color="#f8fff3"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1f2937" flood-opacity=".14"/></filter><style>.box{fill:#fff;stroke:#cbd5e1;stroke-width:2;rx:22;filter:url(#shadow)}.host{fill:#0f766e;stroke:#115e59}.txt{font:600 22px system-ui,Segoe UI,Arial;fill:#0f172a}.sub{font:15px system-ui,Segoe UI,Arial;fill:#475569}.small{font:13px system-ui,Segoe UI,Arial;fill:#64748b}.line{stroke:#0ea5e9;stroke-width:4;fill:none;stroke-linecap:round;stroke-dasharray:10 10}.arrow{fill:#0ea5e9}</style></defs>
+<rect width="960" height="420" rx="28" fill="url(#bg)"/>
+<text x="40" y="55" class="txt">局域网协作架构</text><text x="40" y="82" class="sub">同一 Wi‑Fi 下的浏览器访问宿主机；消息与文件只落在本机 data/。</text>
+<rect class="box" x="70" y="145" width="190" height="120"/><text x="165" y="190" text-anchor="middle" class="txt">📱 手机</text><text x="165" y="220" text-anchor="middle" class="sub">Safari / Chrome</text>
+<rect class="box" x="70" y="285" width="190" height="95"/><text x="165" y="325" text-anchor="middle" class="txt">💻 笔记本</text><text x="165" y="352" text-anchor="middle" class="sub">任意现代浏览器</text>
+<rect class="box host" x="382" y="132" width="240" height="170"/><text x="502" y="185" text-anchor="middle" class="txt" fill="#fff">🏠 Node.js Host</text><text x="502" y="218" text-anchor="middle" class="sub" fill="#ccfbf1">server.mjs · 零依赖</text><text x="502" y="250" text-anchor="middle" class="sub" fill="#ccfbf1">HTTP API + 静态 SPA</text>
+<rect class="box" x="700" y="105" width="190" height="95"/><text x="795" y="145" text-anchor="middle" class="txt">💬 messages</text><text x="795" y="172" text-anchor="middle" class="sub">JSONL 持久化</text>
+<rect class="box" x="700" y="240" width="190" height="95"/><text x="795" y="280" text-anchor="middle" class="txt">📂 uploads</text><text x="795" y="307" text-anchor="middle" class="sub">保留目录结构</text>
+<path class="line" d="M260 205 C315 205 320 190 382 190"/><path class="line" d="M260 333 C315 333 325 258 382 258"/><path class="line" d="M622 185 C660 170 665 155 700 153"/><path class="line" d="M622 250 C660 266 665 287 700 288"/>
+<polygon class="arrow" points="375,190 358,181 358,199"/><polygon class="arrow" points="375,258 358,249 358,267"/><polygon class="arrow" points="693,153 676,144 676,162"/><polygon class="arrow" points="693,288 676,279 676,297"/>
+<text x="350" y="350" class="small">访问控制：加入接口校验房间码；健康检查不返回房间码。</text>
+</svg>
