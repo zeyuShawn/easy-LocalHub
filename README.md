@@ -12,9 +12,14 @@
   <a href="#-常见问题">常见问题</a>
 </p>
 
+<p align="center">
+  <strong>语言 / Language：</strong> 简体中文 · <a href="README.en.md">English</a>
+</p>
+
 > 把一台电脑变成同 Wi‑Fi 下的临时协作站：朋友打开浏览器，输入房间码，就能聊天、传文件、下载文件。无需数据库、无需 `npm install`，消息和上传内容都保存在你的机器上。
 
 ---
+
 
 ## ✨ 适合什么场景？
 
@@ -76,7 +81,7 @@ node server.mjs
    Local:   http://localhost:8080/
    LAN:     http://192.168.1.100:8080/
 
-🔑 Room code: 195220
+🔑 Room code: 123456
 ```
 
 把 **LAN 地址** 和 **房间码** 发给同一 Wi‑Fi 下的参与者：
@@ -111,7 +116,7 @@ journalctl --user -u easy-localhub -f    # 查看日志
 
 ```json
 {
-  "roomCode": "195220",
+  "roomCode": "123456",
   "roomName": "我的房间",
   "ports": [8080, 8081, 8082, 8083, 8084, 8085]
 }
@@ -138,7 +143,8 @@ easy-LocalHub/
 ├── generate-guide.sh          # 生成 HTML/PDF 使用指南
 ├── config.example.json        # 配置示例
 ├── easy-LocalHub-Guide.pdf    # 使用指南 PDF
-├── README.md
+├── README.md                  # 中文说明
+├── README.en.md               # English README
 └── LICENSE                    # MIT
 ```
 

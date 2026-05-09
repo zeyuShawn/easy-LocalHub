@@ -60,7 +60,7 @@ cd easy-LocalHub</pre>
 <pre>bash install.sh</pre>
 <p>首次运行会要求你输入：</p>
 <ul>
-<li><strong>房间码</strong>（如 <code>195220</code>）— 所有加入的设备需要输入此码</li>
+<li><strong>房间码</strong>（如 <code>123456</code>）— 所有加入的设备需要输入此码</li>
 <li><strong>房间名称</strong>（可选，回车使用默认值）</li>
 </ul>
 <p>安装脚本会自动创建 <code>config.json</code> 和数据目录。</p>
@@ -72,7 +72,7 @@ cd easy-LocalHub</pre>
    Local:   http://localhost:8080/
    LAN:     http://192.168.x.x:8080/
 
-🔑 Room code: 195220</pre>
+🔑 Room code: 123456</pre>
 
 <div class="box">
 <strong>💡 开机自启动：</strong>运行 <code>bash install.sh --service</code> 即可安装为 systemd 用户服务，重启机器后自动启动。
@@ -128,7 +128,7 @@ cd easy-LocalHub</pre>
 <h2>七、配置文件说明</h2>
 <p><code>config.json</code>（由 <code>install.sh</code> 自动生成）：</p>
 <pre>{
-  "roomCode": "195220",
+  "roomCode": "123456",
   "roomName": "我的房间",
   "ports": [8080, 8081, 8082, 8083, 8084, 8085]
 }</pre>
