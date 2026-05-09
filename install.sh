@@ -21,7 +21,7 @@ if [ ! -f config.json ]; then
     echo ""
     echo "📝 First-time setup — configure your room code"
     echo ""
-    read -rp "   Enter room code (e.g. 195220): " ROOM_CODE
+    read -rp "   Enter room code (e.g. 123456): " ROOM_CODE
     ROOM_CODE=$(echo "$ROOM_CODE" | tr -d '[:space:]')
     if [ -z "$ROOM_CODE" ]; then
         echo "❌ Room code cannot be empty"

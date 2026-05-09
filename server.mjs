@@ -24,6 +24,9 @@ const config = loadConfig();
 const ROOM_CODE = config.roomCode;
 const PORTS = config.ports || [8080, 8081, 8082, 8083, 8084, 8085];
 const MAX_UPLOAD = 256 * 1024 * 1024;
+const MAX_JSON_BODY = 64 * 1024;
+const MAX_MESSAGE_TEXT = 2000;
+const MAX_USERNAME = 40;
 const MAX_FILES_LIST = 5000;
 
 // --- Helpers ---
@@ -44,6 +47,18 @@ function getLanIPs() {
 }
 function getMsgPath(c) { return path.join(MESSAGES_DIR, c + ".jsonl"); }
 function getUploadPath(c) { return path.join(UPLOADS_DIR, c); }
+function isInsideDir(parent, child) {
+  const rel = path.relative(parent, child);
+  return rel === "" || (!!rel && !rel.startsWith("..") && !path.isAbsolute(rel));
+}
+function safeJoin(parent, relPath) {
+  const resolvedParent = path.resolve(parent);
+  const target = path.resolve(resolvedParent, relPath);
+  return isInsideDir(resolvedParent, target) ? target : null;
+}
+function safeDecodeURIComponent(value) {
+  try { return decodeURIComponent(value); } catch { return null; }
+}
 function readMessages(c) {
   const p = getMsgPath(c);
   if (!fs.existsSync(p)) return [];
@@ -71,8 +86,14 @@ function drain(code) {
 }
 
 // --- Response helpers ---
+const COMMON_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "no-referrer",
+  "Cache-Control": "no-store"
+};
 function jsonResp(res, data, status = 200) {
-  res.writeHead(status, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+  res.writeHead(status, { ...COMMON_HEADERS, "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(data));
 }
 function errResp(res, msg, status = 400) { jsonResp(res, { error: msg }, status); }
@@ -121,12 +142,20 @@ function parseMultipart(buffer, boundary) {
 
 // --- Path & file utils ---
 function sanitizeRelPath(p) {
-  if (!p) return null;
+  if (!p || typeof p !== "string") return null;
   p = p.replace(/\\/g, "/");
-  if (p.startsWith("/") || p.match(/^[A-Za-z]:/)) return null;
+  if (p.startsWith("/") || p.match(/^[A-Za-z]:/) || p.includes("\0")) return null;
   const parts = p.split("/").filter(Boolean);
-  for (const seg of parts) { if (seg === ".." || seg === ".") return null; }
+  for (const seg of parts) {
+    if (seg === ".." || seg === "." || /[\r\n]/.test(seg)) return null;
+  }
   return parts.length ? parts.join("/") : null;
+}
+function cleanText(value, maxLen) {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  if (!text || text.length > maxLen || /[\0]/.test(text)) return null;
+  return text;
 }
 
 function mimeFor(ext) {
@@ -140,14 +169,18 @@ function mimeFor(ext) {
   return m[ext] || "application/octet-stream";
 }
 
+function contentDisposition(name) {
+  const fallback = path.basename(name).replace(/[\r\n"]/g, "_") || "download";
+  return `inline; filename="${fallback}"; filename*=UTF-8''${encodeURIComponent(path.basename(name))}`;
+}
 function streamFile(fp, res) {
   const stat = fs.statSync(fp, { throwIfNoEntry: false });
   if (!stat || !stat.isFile()) { errResp(res, "Not found", 404); return; }
   res.writeHead(200, {
+    ...COMMON_HEADERS,
     "Content-Type": mimeFor(path.extname(fp).toLowerCase()),
     "Content-Length": stat.size,
-    "Access-Control-Allow-Origin": "*",
-    "Content-Disposition": "inline; filename=\"" + path.basename(fp) + "\""
+    "Content-Disposition": contentDisposition(fp)
   });
   fs.createReadStream(fp).pipe(res);
 }
@@ -170,13 +203,22 @@ function walkDir(dir, base) {
   return results;
 }
 
-function collectBody(req) {
+function collectBody(req, maxBytes = MAX_UPLOAD) {
   return new Promise((resolve, reject) => {
     const chunks = []; let size = 0;
-    req.on("data", c => { size += c.length; if (size > MAX_UPLOAD) { req.destroy(); reject(new Error("Too large")); return; } chunks.push(c); });
+    req.on("data", c => {
+      size += c.length;
+      if (size > maxBytes) { reject(new Error("Too large")); req.destroy(); return; }
+      chunks.push(c);
+    });
     req.on("end", () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
+}
+async function readJson(req) {
+  const ct = req.headers["content-type"] || "";
+  if (!ct.toLowerCase().startsWith("application/json")) throw new Error("JSON required");
+  return JSON.parse((await collectBody(req, MAX_JSON_BODY)).toString("utf8"));
 }
 
 // --- Request handler ---
@@ -185,18 +227,18 @@ async function handleRequest(req, res) {
   const p = url.pathname;
 
   if (req.method === "OPTIONS") {
-    res.writeHead(204, { "Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type" });
+    res.writeHead(204, { ...COMMON_HEADERS, "Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type" });
     return res.end();
   }
 
   // API: health
   if (p === "/api/health" && req.method === "GET")
-    return jsonResp(res, { ok:true, ips:getLanIPs(), room: ROOM_CODE });
+    return jsonResp(res, { ok:true, ips:getLanIPs() });
 
   // API: join room
   if (p === "/api/room/join" && req.method === "POST") {
     try {
-      const { code } = JSON.parse((await collectBody(req)).toString());
+      const { code } = await readJson(req);
       if (code !== ROOM_CODE) return errResp(res, "Invalid room code", 403);
       const rooms = loadRooms(); const room = rooms[code];
       if (!room) return errResp(res, "Room not found", 404);
@@ -216,8 +258,10 @@ async function handleRequest(req, res) {
     }
     if (req.method === "POST") {
       try {
-        const { user, text } = JSON.parse((await collectBody(req)).toString());
-        if (!text || !user) return errResp(res, "user and text required");
+        const body = await readJson(req);
+        const user = cleanText(body.user, MAX_USERNAME);
+        const text = cleanText(body.text, MAX_MESSAGE_TEXT);
+        if (!text || !user) return errResp(res, "valid user and text required");
         const msg = { user, text, ts: Date.now() };
         await appendMsg(code, msg);
         return jsonResp(res, { ok:true, message: msg });
@@ -248,7 +292,8 @@ async function handleRequest(req, res) {
         const relPath = relPathFields[i] || part.filename;
         const safe = sanitizeRelPath(relPath);
         if (!safe) continue;
-        const dest = path.join(uploadRoot, safe);
+        const dest = safeJoin(uploadRoot, safe);
+        if (!dest) continue;
         ensureDir(path.dirname(dest));
         fs.writeFileSync(dest, part.data);
         await appendMsg(code, { user: "system", text: "\ud83d\udcce " + safe + " uploaded", ts: Date.now(), type: "file" });
@@ -269,19 +314,26 @@ async function handleRequest(req, res) {
   if ((m = p.match(/^\/api\/room\/([^/]+)\/files\/(.+)$/)) && req.method === "GET") {
     const code = m[1]; const fp = m[2];
     if (code !== ROOM_CODE) return errResp(res, "Invalid room", 403);
-    const safe = sanitizeRelPath(decodeURIComponent(fp));
+    const decoded = safeDecodeURIComponent(fp);
+    if (decoded === null) return errResp(res, "Invalid path");
+    const safe = sanitizeRelPath(decoded);
     if (!safe) return errResp(res, "Invalid path");
-    const abs = path.join(getUploadPath(code), safe);
-    if (!abs.startsWith(getUploadPath(code))) return errResp(res, "Path escape", 403);
+    const abs = safeJoin(getUploadPath(code), safe);
+    if (!abs) return errResp(res, "Path escape", 403);
     if (!fs.existsSync(abs)) return errResp(res, "Not found", 404);
     if (fs.statSync(abs).isDirectory()) return jsonResp(res, { ok:true, files: walkDir(abs, safe) });
     streamFile(abs, res); return;
   }
 
   // Static files
-  let fp = p === "/" ? "/index.html" : p;
-  fp = path.join(PUBLIC_DIR, fp);
-  if (!fp.startsWith(PUBLIC_DIR)) { errResp(res, "Forbidden", 403); return; }
+  const rawStaticPath = (req.url || "/").split(/[?#]/, 1)[0];
+  const decodedStaticPath = safeDecodeURIComponent(rawStaticPath);
+  if (decodedStaticPath === null || decodedStaticPath.split("/").includes("..")) {
+    errResp(res, "Forbidden", 403); return;
+  }
+  let fp = p === "/" ? "index.html" : decodedStaticPath.replace(/^\/+/, "");
+  fp = safeJoin(PUBLIC_DIR, fp);
+  if (!fp) { errResp(res, "Forbidden", 403); return; }
   if (fs.existsSync(fp) && fs.statSync(fp).isFile()) streamFile(fp, res);
   else streamFile(path.join(PUBLIC_DIR, "index.html"), res);
 }
