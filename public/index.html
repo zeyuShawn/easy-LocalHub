@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>easy-LocalHub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e4e4e7;--muted:#71717a;--accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--red:#ef4444;--radius:10px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.container{max-width:800px;width:100%;margin:0 auto;padding:12px;flex:1;display:flex;flex-direction:column}
+#join-screen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.join-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px 32px;text-align:center;width:100%;max-width:380px}
+.join-box h1{font-size:28px;margin-bottom:8px}
+.join-box p{color:var(--muted);margin-bottom:24px;font-size:14px}
+.join-box input{width:100%;padding:14px;font-size:20px;text-align:center;border:2px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;letter-spacing:8px;font-weight:700;transition:.2s}
+.join-box input:focus{border-color:var(--accent)}
+.join-box button{width:100%;margin-top:16px;padding:14px;font-size:16px;font-weight:600;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;cursor:pointer;transition:.2s}
+.join-box button:hover{background:var(--accent2)}
+.join-box .error{color:var(--red);font-size:13px;margin-top:10px;min-height:20px}
+.logo{font-size:48px;margin-bottom:12px}
+#main-screen{display:none;flex:1;flex-direction:column}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.header h2{font-size:18px;display:flex;align-items:center;gap:8px}
+.header .status{width:8px;height:8px;background:var(--green);border-radius:50%;display:inline-block}
+.header .info{color:var(--muted);font-size:12px}
+.tabs{display:flex;gap:4px;margin-bottom:12px}
+.tab{flex:1;padding:10px;text-align:center;border-radius:var(--radius);cursor:pointer;font-size:14px;font-weight:500;background:var(--card);border:1px solid var(--border);color:var(--muted);transition:.2s}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab:hover:not(.active){border-color:var(--accent);color:var(--text)}
+.panel{display:none;flex:1;flex-direction:column;min-height:0}
+.panel.active{display:flex}
+.chat-area{flex:1;overflow-y:auto;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;min-height:200px;max-height:50vh}
+.msg{margin-bottom:8px;padding:8px 12px;border-radius:8px;max-width:85%;word-break:break-word;font-size:14px;line-height:1.5}
+.msg.mine{margin-left:auto;background:var(--accent);color:#fff}
+.msg.other{background:var(--bg);border:1px solid var(--border)}
+.msg.system{margin:4px auto;text-align:center;color:var(--muted);font-size:12px;max-width:95%;background:none}
+.msg .meta{font-size:11px;opacity:.7;margin-top:2px}
+.chat-input{display:flex;gap:8px}
+.chat-input input{flex:1;padding:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;font-size:14px}
+.chat-input input:focus{border-color:var(--accent)}
+.chat-input button{padding:12px 20px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-size:14px}
+.chat-input button:hover{background:var(--accent2)}
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px;text-align:center;color:var(--muted);cursor:pointer;transition:.2s;margin-bottom:12px;font-size:14px}
+.drop-zone.hover{border-color:var(--accent);color:var(--accent);background:rgba(99,102,241,.08)}
+.drop-zone input{display:none}
+.file-list{flex:1;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);min-height:100px;max-height:45vh}
+.file-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;transition:.15s}
+.file-item:last-child{border-bottom:none}
+.file-item:hover{background:rgba(99,102,241,.06)}
+.file-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size{color:var(--muted);font-size:12px;margin-left:12px;white-space:nowrap}
+.file-download{color:var(--accent);text-decoration:none;font-size:12px;margin-left:12px;white-space:nowrap}
+.file-download:hover{color:var(--accent2)}
+.dir-icon::before{content:"📁 "}
+.file-icon::before{content:"📄 "}
+.upload-progress{margin-top:8px;font-size:13px;color:var(--accent);min-height:20px}
+.refresh-btn{padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--text);cursor:pointer;font-size:13px;margin-bottom:8px;transition:.2s}
+.refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
+.files-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.files-header h3{font-size:14px;color:var(--muted)}
+.empty-msg{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 24px;width:90%;max-width:340px;text-align:center}
+.modal h3{margin-bottom:16px;font-size:18px}
+.modal input{width:100%;padding:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;font-size:14px;text-align:center}
+.modal input:focus{border-color:var(--accent)}
+.modal button{width:100%;margin-top:14px;padding:12px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-weight:600;cursor:pointer;font-size:14px}
+.modal button:hover{background:var(--accent2)}
+.footer{text-align:center;padding:8px;color:var(--muted);font-size:11px;border-top:1px solid var(--border);margin-top:auto}
+@media(max-width:600px){.container{padding:8px}.join-box{padding:28px 20px}.msg{max-width:92%}}
+</style>
+</head>
+<body>
+<div id="join-screen">
+<div class="join-box">
+  <div class="logo">🏠</div>
+  <h1>easy-LocalHub</h1>
+  <p>局域网协作空间 · 输入房间码加入</p>
+  <input id="code-input" type="text" placeholder="输入房间码" maxlength="20" autocomplete="off">
+  <button onclick="joinRoom()">加入房间</button>
+  <div class="error" id="join-error"></div>
+</div>
+</div>
+<div id="main-screen">
+<div class="container">
+  <div class="header">
+    <h2><span class="status"></span> easy-LocalHub</h2>
+    <div class="info">房间 <strong id="room-display"></strong> · <span id="user-display"></span></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="chat" onclick="switchTab('chat')">💬 聊天</div>
+    <div class="tab" data-tab="files" onclick="switchTab('files')">📂 文件</div>
+  </div>
+  <div class="panel active" id="panel-chat">
+    <div class="chat-area" id="chat-area"></div>
+    <div class="chat-input">
+      <input id="msg-input" placeholder="输入消息..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button onclick="sendMsg()">发送</button>
+    </div>
+  </div>
+  <div class="panel" id="panel-files">
+    <div class="drop-zone" id="drop-zone">
+      <div style="font-size:36px;margin-bottom:8px">📤</div>
+      <div>拖拽文件或整个文件夹到这里上传</div>
+      <div style="margin-top:6px;font-size:12px">点击选择文件 · Shift+点击选择文件夹</div>
+      <input type="file" id="file-input" multiple>
+      <input type="file" id="folder-input" webkitdirectory directory multiple>
+    </div>
+    <div class="upload-progress" id="upload-progress"></div>
+    <div class="files-header">
+      <h3>已上传文件</h3>
+      <button class="refresh-btn" onclick="loadFiles()">🔄 刷新</button>
+    </div>
+    <div class="file-list" id="file-list"><div class="empty-msg">暂无文件</div></div>
+  </div>
+</div>
+<div class="footer">easy-LocalHub · <a href="https://github.com/zeyuShawn/easy-LocalHub" style="color:var(--accent);text-decoration:none">GitHub</a></div>
+</div>
+<script>
+const API = location.origin;
+let ROOM = "", USER = "", pollTimer = null;
+let ROOM_CODE = null;
+async function fetchRoomCode() {
+  try { const r = await fetch(API + "/api/health"); const d = await r.json(); ROOM_CODE = d.room; } catch { ROOM_CODE = null; }
+}
+function joinRoom() {
+  const code = document.getElementById("code-input").value.trim();
+  const errEl = document.getElementById("join-error");
+  errEl.textContent = "";
+  if (!code) { errEl.textContent = "请输入房间码"; return; }
+  if (ROOM_CODE && code !== ROOM_CODE) { errEl.textContent = "房间码错误"; return; }
+  ROOM = code;
+  showUsernameModal();
+}
+function showUsernameModal() {
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.innerHTML = '<div class="modal"><h3>设置昵称</h3><input id="username-input" placeholder="输入你的昵称" maxlength="20" autocomplete="off"><button onclick="confirmUsername()">确认加入</button></div>';
+  document.body.appendChild(overlay);
+  document.getElementById("username-input").focus();
+  document.getElementById("username-input").onkeydown = (e) => { if (e.key === "Enter") confirmUsername(); };
+}
+function confirmUsername() {
+  const name = document.getElementById("username-input").value.trim();
+  if (!name) return;
+  USER = name;
+  localStorage.setItem("hub-user", USER);
+  document.querySelector(".modal-overlay")?.remove();
+  enterMain();
+}
+async function enterMain() {
+  document.getElementById("join-screen").style.display = "none";
+  document.getElementById("main-screen").style.display = "flex";
+  document.getElementById("user-display").textContent = USER;
+  document.getElementById("room-display").textContent = ROOM;
+  await loadMessages();
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(loadMessages, 3000);
+  loadFiles();
+}
+async function loadMessages() {
+  try {
+    const res = await fetch(API + "/api/room/" + ROOM + "/messages");
+    const data = await res.json();
+    if (!data.ok) return;
+    renderMessages(data.messages);
+  } catch (e) { console.error(e); }
+}
+function renderMessages(msgs) {
+  const area = document.getElementById("chat-area");
+  const wasAtBottom = area.scrollHeight - area.scrollTop - area.clientHeight < 60;
+  area.innerHTML = "";
+  for (const m of msgs) {
+    const div = document.createElement("div");
+    if (m.type === "file" || m.user === "system") { div.className = "msg system"; div.textContent = m.text; }
+    else if (m.user === USER) { div.className = "msg mine"; div.innerHTML = '<div>' + esc(m.text) + '</div><div class="meta">' + esc(m.user) + ' · ' + fmtTime(m.ts) + '</div>'; }
+    else { div.className = "msg other"; div.innerHTML = '<div>' + esc(m.text) + '</div><div class="meta">' + esc(m.user) + ' · ' + fmtTime(m.ts) + '</div>'; }
+    area.appendChild(div);
+  }
+  if (wasAtBottom) area.scrollTop = area.scrollHeight;
+}
+async function sendMsg() {
+  const input = document.getElementById("msg-input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  try {
+    await fetch(API + "/api/room/" + ROOM + "/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user: USER, text }) });
+    loadMessages();
+  } catch (e) { console.error(e); }
+}
+function switchTab(tab) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + tab));
+  if (tab === "files") loadFiles();
+}
+const dropZone = document.getElementById("drop-zone");
+const fileInput = document.getElementById("file-input");
+const folderInput = document.getElementById("folder-input");
+dropZone.addEventListener("click", e => { if (e.shiftKey) folderInput.click(); else fileInput.click(); });
+fileInput.addEventListener("change", () => { if (fileInput.files.length) uploadFilesWithPaths([...fileInput.files].map(f => ({file:f, relPath:f.webkitRelativePath||f.name}))); });
+folderInput.addEventListener("change", () => { if (folderInput.files.length) uploadFilesWithPaths([...folderInput.files].map(f => ({file:f, relPath:f.webkitRelativePath||f.name}))); });
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("hover"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
+dropZone.addEventListener("drop", async e => {
+  e.preventDefault(); dropZone.classList.remove("hover");
+  const items = e.dataTransfer.items;
+  if (!items || !items.length) return;
+  const entries = [];
+  for (let i = 0; i < items.length; i++) { const entry = items[i].webkitGetAsEntry?.() || items[i].getAsEntry?.(); if (entry) entries.push(entry); }
+  if (entries.length > 0) { const allFiles = []; await Promise.all(entries.map(entry => traverseEntry(entry, "", allFiles))); if (allFiles.length) uploadFilesWithPaths(allFiles); }
+  else if (e.dataTransfer.files.length) { uploadFilesWithPaths([...e.dataTransfer.files].map(f => ({file:f, relPath:f.name}))); }
+});
+function traverseEntry(entry, basePath, results) {
+  return new Promise(resolve => {
+    if (entry.isFile) { entry.file(file => { results.push({file, relPath: basePath ? basePath+"/"+entry.name : entry.name}); resolve(); }); }
+    else if (entry.isDirectory) {
+      const reader = entry.createReader();
+      const readAll = entries => new Promise(res => { const next = batch => { if (!batch.length) return res(entries); entries.push(...batch); reader.readEntries(next); }; reader.readEntries(next); });
+      readAll([]).then(children => { const dirPath = basePath ? basePath+"/"+entry.name : entry.name; Promise.all(children.map(c => traverseEntry(c, dirPath, results))).then(resolve); });
+    } else resolve();
+  });
+}
+async function uploadFilesWithPaths(filesWithPaths) {
+  const progress = document.getElementById("upload-progress");
+  progress.textContent = "正在上传 " + filesWithPaths.length + " 个项目...";
+  const form = new FormData();
+  for (const {file, relPath} of filesWithPaths) { form.append("files", file, file.name); form.append("relativePath", relPath); }
+  try {
+    const res = await fetch(API + "/api/room/" + ROOM + "/upload", { method: "POST", body: form });
+    const data = await res.json();
+    if (data.ok) { progress.textContent = "✅ 上传完成！" + data.saved.length + " 个项目已保存"; loadMessages(); loadFiles(); }
+    else progress.textContent = "❌ 上传失败: " + data.error;
+  } catch (e) { progress.textContent = "❌ 上传出错: " + e.message; }
+  setTimeout(() => progress.textContent = "", 5000);
+}
+async function loadFiles() {
+  try {
+    const res = await fetch(API + "/api/room/" + ROOM + "/files");
+    const data = await res.json();
+    const list = document.getElementById("file-list");
+    if (!data.ok || !data.files || !data.files.length) { list.innerHTML = '<div class="empty-msg">暂无文件</div>'; return; }
+    list.innerHTML = "";
+    for (const f of data.files) {
+      const div = document.createElement("div"); div.className = "file-item";
+      const isDir = f.type === "directory";
+      const icon = isDir ? "dir-icon" : "file-icon";
+      const size = isDir ? "" : '<span class="file-size">' + fmtSize(f.size) + '</span>';
+      const dl = isDir ? "" : '<a class="file-download" href="' + API + '/api/room/' + ROOM + '/files/' + encodeURIComponent(f.name) + '" target="_blank" download>⬇ 下载</a>';
+      div.innerHTML = '<span class="file-name ' + icon + '">' + esc(f.name) + '</span>' + size + dl;
+      list.appendChild(div);
+    }
+  } catch (e) { console.error(e); }
+}
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function fmtTime(ts) { return new Date(ts).toLocaleTimeString("zh-CN", {hour:"2-digit",minute:"2-digit"}); }
+function fmtSize(b) { if (b<1024) return b+"B"; if (b<1048576) return (b/1024).toFixed(1)+"KB"; if (b<1073741824) return (b/1048576).toFixed(1)+"MB"; return (b/1073741824).toFixed(2)+"GB"; }
+(async function init() {
+  await fetchRoomCode();
+  if (ROOM_CODE) document.getElementById("code-input").placeholder = "输入房间码";
+  const saved = localStorage.getItem("hub-user");
+  if (saved) document.getElementById("code-input").value = ROOM_CODE || "";
+  document.getElementById("code-input").focus();
+  document.getElementById("code-input").onkeydown = e => { if (e.key === "Enter") joinRoom(); };
+})();
+</script>
+</body>
+</html>
