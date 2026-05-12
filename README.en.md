@@ -1,79 +1,32 @@
-# 🏠 easy-LocalHub
+# 🏠 easy-LocalHub 2.0.0
 
 <p align="center">
-  <strong>Zero dependencies · One-command setup · LAN collaboration with data kept on your own machine</strong>
+  <strong>Turn one computer into an instant chat + file hub for the same Wi‑Fi</strong><br>
+  <span>No npm dependencies · Local-first data · One-command OpenClaw install/start/setup</span>
 </p>
 
 <p align="center">
-  <a href="#-quick-start">Quick Start</a> ·
-  <a href="#-feature-map">Feature Map</a> ·
-  <a href="#-diagrams">Diagrams</a> ·
-  <a href="#-security-boundaries">Security</a> ·
-  <a href="#-faq">FAQ</a>
+  <a href="#-start-in-30-seconds">Start in 30 seconds</a> ·
+  <a href="#-openclaw-one-command-entrypoint">OpenClaw entrypoint</a> ·
+  <a href="#-why-people-want-it">Why use it</a> ·
+  <a href="#-configuration--operations">Operations</a> ·
+  <a href="README.md">简体中文</a>
 </p>
 
-<p align="center">
-  <strong>Language:</strong> <a href="README.md">简体中文</a> · English
-</p>
-
-> Turn one computer into a temporary collaboration hub for everyone on the same Wi‑Fi. Friends open a browser, enter the room code, then chat, upload files, and download shared files. No database and no `npm install`; messages and uploads stay on the host machine.
+> Perfect for meeting rooms, classrooms, temporary project teams, and home LANs: the host starts the service, participants open the LAN URL, enter the room code, then chat, upload folders, and download files. Version 2.0.0 fixes Chinese/non-ASCII filename downloads and promotes OpenClaw automation to the top of the README.
 
 ---
 
-## ✨ When is it useful?
-
-| Scenario | What you get |
-| --- | --- |
-| Meeting room / classroom handouts | Devices on the same Wi‑Fi can open the LAN URL and download files directly. |
-| Phone ↔ computer file transfer | Upload from a browser and store files locally on the host. |
-| Temporary small-team communication | Simple group chat with persisted messages. |
-| Avoiding cloud storage for local sharing | Data is written only to the local `data/` directory. |
-
----
-
-## 🎯 Feature Map
-
-- 📂 **File relay**: drag and drop files or whole folders while preserving folder structure.
-- 💬 **Group chat**: messages are persisted as JSONL and survive page refreshes.
-- 🔑 **Room-code validation**: the server validates room joins; health checks do not reveal the room code.
-- 📱 **Cross-platform access**: works from modern browsers on Windows, macOS, Linux, iOS, and Android.
-- 🚀 **Zero-dependency runtime**: pure Node.js HTTP server; no npm packages required.
-- 🔄 **Optional autostart**: can be installed as a systemd user service.
-- 🛡️ **Basic hardening**: path boundary checks, input length limits, response security headers, and upload size limits.
-
----
-
-## 🖼️ Diagrams
-
-### 1. LAN collaboration architecture
-
-![easy-LocalHub architecture](docs/images/architecture.svg)
-
-### 2. Setup-to-collaboration workflow
-
-![easy-LocalHub workflow](docs/images/workflow.svg)
-
-### 3. Data boundaries and security hardening
-
-![easy-LocalHub security and data boundaries](docs/images/security-data.svg)
-
----
-
-## 🚀 Quick Start
+## 🚀 Start in 30 seconds
 
 ```bash
-# 1. Clone to your computer
 git clone https://github.com/zeyuShawn/easy-LocalHub.git
 cd easy-LocalHub
-
-# 2. Run first-time setup and choose a room code
 bash install.sh
-
-# 3. Start the service
 node server.mjs
 ```
 
-The terminal will print something like:
+The server prints something like:
 
 ```text
 🚀 easy-LocalHub running!
@@ -83,35 +36,104 @@ The terminal will print something like:
 🔑 Room code: 123456
 ```
 
-Share the **LAN URL** and **room code** with participants on the same Wi‑Fi:
-
-1. Open the LAN URL in a browser.
-2. Enter the room code.
-3. Choose a nickname.
-4. Start chatting, uploading, or downloading files.
+Share the **LAN URL** and **room code** with people on the same Wi‑Fi.
 
 ---
 
-## 🔧 Autostart (optional)
+## 🤖 OpenClaw one-command entrypoint
+
+If you want an OpenClaw robot to install, start, and configure easy-LocalHub from code, run:
 
 ```bash
-bash install.sh --service
+bash install.sh --openclaw
 ```
 
-After installing the systemd user service, manage it with:
+Or use the dedicated script with automation-friendly environment variables:
 
 ```bash
-systemctl --user status easy-localhub    # Check status
-systemctl --user restart easy-localhub   # Restart
-systemctl --user stop easy-localhub      # Stop
-journalctl --user -u easy-localhub -f    # Follow logs
+EASY_LOCALHUB_ROOM_CODE=123456 \
+EASY_LOCALHUB_ROOM_NAME="OpenClaw LocalHub" \
+bash openclaw-setup.sh setup
 ```
+
+The flow will:
+
+1. Check Node.js.
+2. Create `config.json` and `data/` directories.
+3. Start easy-LocalHub and print the browser URL, room code, and log path.
+4. Install OpenClaw with the official installer if `openclaw` is not available.
+5. Run `openclaw onboard --install-daemon` for auth, model, gateway, and daemon setup.
+
+Useful commands:
+
+```bash
+bash openclaw-setup.sh localhub       # install/start easy-LocalHub only
+bash openclaw-setup.sh openclaw       # install/configure OpenClaw only
+bash openclaw-setup.sh dashboard      # open the OpenClaw Dashboard
+bash openclaw-setup.sh status         # show the LocalHub URL and run OpenClaw checks
+```
+
+Automation variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `EASY_LOCALHUB_ROOM_CODE` | Set the room code without prompts. |
+| `EASY_LOCALHUB_ROOM_NAME` | Set the room name without prompts. |
+| `EASY_LOCALHUB_SERVICE=1` | Install easy-LocalHub as a systemd user service. |
+| `OPENCLAW_SKIP_ONBOARD=1` | Install/start LocalHub and OpenClaw, but skip interactive onboarding. |
+
+OpenClaw official installation docs: <https://docs.openclaw.ai/install>
 
 ---
 
-## ⚙️ Configuration
+## ✨ Why people want it
 
-`install.sh` guides you through first-time setup. You can also edit `config.json` manually:
+| Situation | Value |
+| --- | --- |
+| Share slides one minute before a meeting | No group chat, no cloud drive; participants open the LAN URL. |
+| Move files between phone, tablet, and laptop | Upload in a browser; the host keeps the files locally. |
+| Keep lightweight discussion context | Chat is persisted as JSONL and survives refreshes. |
+| Transfer a folder as-is | Drag an entire folder and keep its structure. |
+| Stay local-first | Messages and files are written to the host machine's `data/` directory. |
+| Automate deployment | OpenClaw/scripts can install, start, and configure it in one command. |
+
+---
+
+## ✅ What changed in 2.0.0
+
+- **Fixed non-ASCII filename downloads**: `Content-Disposition` now uses RFC 5987 `filename*` encoding plus an ASCII fallback, avoiding Node.js `ERR_INVALID_CHAR` errors.
+- **OpenClaw integration**: added `openclaw-setup.sh` and `bash install.sh --openclaw` so robots can install, start, and configure the app.
+- **README refresh**: Chinese and English READMEs now lead with instant usage, OpenClaw automation, and product value.
+- **Version bump**: app version is now `2.0.0`; health checks return the version and the UI footer shows it.
+
+---
+
+## 🎯 Feature map
+
+- 📂 **File relay**: drag files or entire folders; directory structure is preserved.
+- ⬇️ **Reliable downloads**: Chinese, spaces, and common symbols in filenames are supported.
+- 💬 **Group chat**: JSONL persistence keeps messages after refresh.
+- 🔑 **Room-code verification**: the server validates room joins; health checks do not reveal the room code.
+- 📱 **Cross-platform browser access**: Windows, macOS, Linux, iOS, and Android modern browsers work.
+- 🚀 **Zero dependency runtime**: plain Node.js HTTP server; no npm package install required.
+- 🔄 **Optional auto-start**: install as a systemd user service.
+- 🛡️ **Basic hardening**: path boundary checks, input limits, security response headers, upload size cap.
+
+---
+
+## 🖼️ Architecture diagrams
+
+![easy-LocalHub architecture](docs/images/architecture.svg)
+
+![easy-LocalHub workflow](docs/images/workflow.svg)
+
+![easy-LocalHub security and data boundaries](docs/images/security-data.svg)
+
+---
+
+## ⚙️ Configuration & operations
+
+`install.sh` guides first-time setup. You can also edit `config.json` manually:
 
 ```json
 {
@@ -121,141 +143,64 @@ journalctl --user -u easy-localhub -f    # Follow logs
 }
 ```
 
-| Field | Description |
-| --- | --- |
-| `roomCode` | Required to join the room and access room APIs. |
-| `roomName` | Display name for the room. |
-| `ports` | Candidate ports; the service uses the first available one. |
+Install as a systemd user service:
+
+```bash
+bash install.sh --service
+systemctl --user status easy-localhub
+systemctl --user restart easy-localhub
+journalctl --user -u easy-localhub -f
+```
 
 ---
 
-## 📁 Project Structure
+## 🧭 API and data flow
+
+| Capability | Path | Notes |
+| --- | --- | --- |
+| Health check | `GET /api/health` | Returns status, version, and LAN IPs; does not return the room code. |
+| Join room | `POST /api/room/join` | Server validates `roomCode`. |
+| Get messages | `GET /api/room/:code/messages` | Returns recent messages, default max 200. |
+| Send message | `POST /api/room/:code/messages` | Appends to `data/messages/<code>.jsonl`. |
+| Upload file | `POST /api/room/:code/upload` | Writes to `data/uploads/<code>/`; 256 MB request limit. |
+| List files | `GET /api/room/:code/files` | Recursively lists up to 5000 files/directories. |
+| Download file | `GET /api/room/:code/files/:path` | Sanitizes paths and validates directory boundaries before streaming. |
+
+---
+
+## 📁 Project structure
 
 ```text
 easy-LocalHub/
-├── server.mjs                 # HTTP service (zero-dependency Node.js)
-├── public/
-│   └── index.html             # Frontend SPA (chat + file manager)
-├── docs/
-│   └── images/                # README SVG diagrams
-├── install.sh                 # First-time setup + optional systemd service
-├── generate-guide.sh          # Generate HTML/PDF guide
-├── config.example.json        # Example configuration
-├── easy-LocalHub-Guide.pdf    # User guide PDF
+├── server.mjs                 # Node.js HTTP server with zero npm dependencies
+├── public/index.html          # Frontend SPA (chat + file manager)
+├── docs/images/               # README SVG diagrams
+├── install.sh                 # First-time setup + systemd + OpenClaw entrypoint
+├── openclaw-setup.sh          # One-command OpenClaw/robot install, start, setup script
+├── config.example.json        # Example config
 ├── README.md                  # Chinese README
 ├── README.en.md               # English README
 └── LICENSE                    # MIT
 ```
 
-After running `install.sh`, these local files/directories are generated:
+Generated after runtime setup:
 
 ```text
-├── config.json                # Your room code and port configuration (gitignored)
-└── data/                      # Messages, uploads, and runtime port file (gitignored)
+├── config.json                # Your room code and port config (gitignored)
+└── data/                      # Chat logs, uploads, selected port, logs (gitignored)
 ```
 
 ---
 
-## 🧭 API and Data Flow
+## 🛡️ Security boundaries
 
-| Capability | Path | Description |
-| --- | --- | --- |
-| Health check | `GET /api/health` | Returns service status and LAN IPs; does not return the room code. |
-| Join room | `POST /api/room/join` | Server-side room-code validation. |
-| Fetch messages | `GET /api/room/:code/messages` | Returns recent messages, defaulting to at most 200. |
-| Send message | `POST /api/room/:code/messages` | Writes to `data/messages/<code>.jsonl`. |
-| Upload files | `POST /api/room/:code/upload` | Writes to `data/uploads/<code>/`; request limit is 256 MB. |
-| List files | `GET /api/room/:code/files` | Recursively lists up to 5000 files/directories. |
-| Download file | `GET /api/room/:code/files/:path` | Cleans the path and checks directory boundaries before serving. |
+- Use it on trusted LANs; do not expose it directly to the public internet.
+- The room code is a lightweight access gate, not a full account/auth system.
+- Uploaded files stay on the host; clean `data/uploads/` periodically.
+- OpenClaw can automate actions, so use dedicated API keys/accounts and least-privilege settings.
 
 ---
 
-## 🛡️ Security Boundaries
-
-### Built-in basic protections
-
-- The health endpoint does not return the room code.
-- The frontend calls `POST /api/room/join`; joining is not only checked in the browser.
-- Upload and download paths are cleaned and checked with `safeJoin` to reduce path traversal risk.
-- JSON request bodies, usernames, and message text have size/length limits.
-- Responses include `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, and `Cache-Control: no-store`.
-
-### What you still need to know
-
-- This project is intended for **trusted LAN usage**, not as a public internet file server.
-- The room code is the main access control; choose a non-trivial code and share it only with trusted participants.
-- Uploaded files are not virus-scanned; verify files before opening them.
-- For internet exposure, add HTTPS, reverse-proxy authentication, access logs, rate limiting, and malware scanning.
-
----
-
-## 📖 PDF User Guide
-
-The repository includes a guide generator:
-
-```bash
-bash generate-guide.sh
-# Output: easy-LocalHub-Guide.pdf
-```
-
-If no PDF converter is available, the script keeps the generated HTML guide so you can open it in a browser and print to PDF.
-
----
-
-## ✅ Requirements
-
-| Role | Requirement |
-| --- | --- |
-| Server | Node.js 18+; Debian/Ubuntu recommended for Linux; macOS/Windows can run `node server.mjs` manually. |
-| Client | Any modern browser: Chrome / Safari / Firefox / Edge. |
-| Network | Client devices and host are on the same LAN, and the host firewall allows the selected port. |
-
----
-
-## ❓ FAQ
-
-<details>
-<summary>Other devices cannot open the LAN URL. What should I check?</summary>
-
-- Make sure all devices are on the same Wi‑Fi / LAN.
-- Make sure the host firewall allows the current port (8080 by default).
-- Verify that the LAN URL printed in the terminal belongs to the active network adapter.
-
-</details>
-
-<details>
-<summary>What if the port is already in use?</summary>
-
-The service tries ports in the order listed in `config.json`. Add more candidates if needed:
-
-```json
-{
-  "ports": [8080, 8081, 8090, 9000]
-}
-```
-
-</details>
-
-<details>
-<summary>What if a large upload fails?</summary>
-
-The current request upload limit is 256 MB. Split the file, compress the folder, or adjust `MAX_UPLOAD` in `server.mjs` if you trust the environment.
-
-</details>
-
-<details>
-<summary>Where is data stored, and how do I clean it?</summary>
-
-- Messages: `data/messages/`
-- Files: `data/uploads/`
-- Current port: `data/port.txt`
-
-Stop the service and delete the relevant files/directories to clear history.
-
-</details>
-
----
-
-## 📜 License
+## 📄 License
 
 MIT

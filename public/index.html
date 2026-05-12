@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>easy-LocalHub</title>
+<title>easy-LocalHub 2.0.0</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e4e4e7;--muted:#71717a;--accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--red:#ef4444;--radius:10px}
@@ -11,7 +11,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .container{max-width:800px;width:100%;margin:0 auto;padding:12px;flex:1;display:flex;flex-direction:column}
 #join-screen{display:flex;align-items:center;justify-content:center;min-height:100vh}
 .join-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px 32px;text-align:center;width:100%;max-width:380px}
-.join-box h1{font-size:28px;margin-bottom:8px}
+.join-box h1{font-size:28px;margin-bottom:8px}.version{font-size:13px;color:var(--accent2);vertical-align:middle}
 .join-box p{color:var(--muted);margin-bottom:24px;font-size:14px}
 .join-box input{width:100%;padding:14px;font-size:20px;text-align:center;border:2px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;letter-spacing:8px;font-weight:700;transition:.2s}
 .join-box input:focus{border-color:var(--accent)}
@@ -75,7 +75,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 <div id="join-screen">
 <div class="join-box">
   <div class="logo">🏠</div>
-  <h1>easy-LocalHub</h1>
+  <h1>easy-LocalHub <span class="version">2.0.0</span></h1>
   <p>局域网协作空间 · 输入房间码加入</p>
   <input id="code-input" type="text" placeholder="输入房间码" maxlength="20" autocomplete="off">
   <button onclick="joinRoom()">加入房间</button>
@@ -115,7 +115,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <div class="file-list" id="file-list"><div class="empty-msg">暂无文件</div></div>
   </div>
 </div>
-<div class="footer">easy-LocalHub · <a href="https://github.com/zeyuShawn/easy-LocalHub" style="color:var(--accent);text-decoration:none">GitHub</a></div>
+<div class="footer">easy-LocalHub 2.0.0 · <a href="https://github.com/zeyuShawn/easy-LocalHub" style="color:var(--accent);text-decoration:none">GitHub</a></div>
 </div>
 <script>
 const API = location.origin;

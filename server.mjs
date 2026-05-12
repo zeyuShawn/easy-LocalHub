@@ -11,6 +11,7 @@ const ROOMS_FILE = path.join(DATA_DIR, "rooms.json");
 const MESSAGES_DIR = path.join(DATA_DIR, "messages");
 const UPLOADS_DIR = path.join(DATA_DIR, "uploads");
 const PUBLIC_DIR = path.join(__dirname, "public");
+const APP_VERSION = "2.0.0";
 
 // --- Load config ---
 function loadConfig() {
@@ -169,9 +170,20 @@ function mimeFor(ext) {
   return m[ext] || "application/octet-stream";
 }
 
+function encodeRFC5987ValueChars(value) {
+  return encodeURIComponent(value).replace(/['()*]/g, ch => "%" + ch.charCodeAt(0).toString(16).toUpperCase());
+}
+function asciiFilenameFallback(name) {
+  const fallback = path.basename(name)
+    .normalize("NFKD")
+    .replace(/[^\x20-\x7E]+/g, "_")
+    .replace(/[\r\n"\\]/g, "_")
+    .trim();
+  return fallback || "download";
+}
 function contentDisposition(name) {
-  const fallback = path.basename(name).replace(/[\r\n"]/g, "_") || "download";
-  return `inline; filename="${fallback}"; filename*=UTF-8''${encodeURIComponent(path.basename(name))}`;
+  const base = path.basename(name);
+  return `inline; filename="${asciiFilenameFallback(base)}"; filename*=UTF-8''${encodeRFC5987ValueChars(base)}`;
 }
 function streamFile(fp, res) {
   const stat = fs.statSync(fp, { throwIfNoEntry: false });
@@ -233,7 +245,7 @@ async function handleRequest(req, res) {
 
   // API: health
   if (p === "/api/health" && req.method === "GET")
-    return jsonResp(res, { ok:true, ips:getLanIPs() });
+    return jsonResp(res, { ok:true, version:APP_VERSION, ips:getLanIPs() });
 
   // API: join room
   if (p === "/api/room/join" && req.method === "POST") {
