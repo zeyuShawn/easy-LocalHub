@@ -8,6 +8,11 @@ echo "   🏠 easy-LocalHub Installer"
 echo "========================================="
 echo ""
 
+if [ "${1:-}" = "--openclaw" ]; then
+    exec bash openclaw-setup.sh setup
+fi
+
+
 # Check Node.js
 if ! command -v node &>/dev/null; then
     echo "❌ Node.js not found! Install it first:"
@@ -84,6 +89,7 @@ echo "   ✅ Installation complete!"
 echo "========================================="
 echo ""
 echo "   🚀 Start server:   node server.mjs"
+echo "   🤖 OpenClaw setup: bash install.sh --openclaw"
 echo "   🔑 Room code:      $ROOM_CODE"
 echo ""
 echo "   Other devices on the same Wi-Fi can"

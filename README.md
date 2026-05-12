@@ -1,40 +1,117 @@
-# 🏠 easy-LocalHub
+# 🏠 easy-LocalHub 2.0.0
 
 <p align="center">
-  <strong>零依赖 · 一键部署 · 数据留在本机的局域网协作空间</strong>
+  <strong>一台电脑，马上变成同 Wi‑Fi 下的聊天 + 文件中转站</strong><br>
+  <span>零 npm 依赖 · 数据留在本机 · 支持 OpenClaw 一键安装/启动/设置</span>
 </p>
 
 <p align="center">
-  <a href="#-快速开始">快速开始</a> ·
-  <a href="#-功能地图">功能地图</a> ·
-  <a href="#-架构图解">架构图解</a> ·
-  <a href="#-安全边界">安全边界</a> ·
-  <a href="#-常见问题">常见问题</a>
+  <a href="#-30-秒开始使用">30 秒开始</a> ·
+  <a href="#-openclaw-一键接入醒目入口">OpenClaw 一键接入</a> ·
+  <a href="#-你会喜欢它的原因">产品亮点</a> ·
+  <a href="#-配置与运维">配置与运维</a> ·
+  <a href="README.en.md">English</a>
 </p>
 
-<p align="center">
-  <strong>语言 / Language：</strong> 简体中文 · <a href="README.en.md">English</a>
-</p>
-
-> 把一台电脑变成同 Wi‑Fi 下的临时协作站：朋友打开浏览器，输入房间码，就能聊天、传文件、下载文件。无需数据库、无需 `npm install`，消息和上传内容都保存在你的机器上。
+> 适合会议室、教室、临时项目组和家庭局域网：主持人启动服务，其他人打开 LAN 地址、输入房间码，就能聊天、上传文件夹、下载文件。2.0.0 修复了中文文件名下载失败的问题，并把 OpenClaw 自动化入口放到首屏。
 
 ---
 
+## 🚀 30 秒开始使用
 
-## ✨ 适合什么场景？
+```bash
+git clone https://github.com/zeyuShawn/easy-LocalHub.git
+cd easy-LocalHub
+bash install.sh
+node server.mjs
+```
 
-| 场景 | 你会得到什么 |
+启动后终端会显示：
+
+```text
+🚀 easy-LocalHub running!
+   Local:   http://localhost:8080/
+   LAN:     http://192.168.1.100:8080/
+
+🔑 Room code: 123456
+```
+
+把 **LAN 地址** 和 **房间码** 发给同一 Wi‑Fi 下的参与者即可使用。
+
+---
+
+## 🤖 OpenClaw 一键接入（醒目入口）
+
+如果你希望让 OpenClaw 机器人通过代码自动安装、启动并进入设置流程，直接运行：
+
+```bash
+bash install.sh --openclaw
+```
+
+也可以使用独立脚本，便于机器人/CI 指定参数：
+
+```bash
+EASY_LOCALHUB_ROOM_CODE=123456 \
+EASY_LOCALHUB_ROOM_NAME="OpenClaw LocalHub" \
+bash openclaw-setup.sh setup
+```
+
+这个流程会：
+
+1. 检查 Node.js。
+2. 创建 `config.json` 和 `data/` 目录。
+3. 启动 easy-LocalHub，并打印浏览器地址、房间码和日志路径。
+4. 如果本机没有 OpenClaw，使用官方安装器安装。
+5. 运行 `openclaw onboard --install-daemon` 进入 OpenClaw 认证、模型、网关/守护进程设置。
+
+常用命令：
+
+```bash
+bash openclaw-setup.sh localhub       # 只安装/启动 easy-LocalHub
+bash openclaw-setup.sh openclaw       # 只安装/设置 OpenClaw
+bash openclaw-setup.sh dashboard      # 打开 OpenClaw Dashboard
+bash openclaw-setup.sh status         # 查看 LocalHub 地址并运行 OpenClaw 检查
+```
+
+可用于机器人自动化的环境变量：
+
+| 变量 | 作用 |
 | --- | --- |
-| 会议室 / 教室临时分发资料 | 同一 Wi‑Fi 下直接打开 LAN 地址下载文件 |
-| 手机 ↔ 电脑互传文件 | 浏览器上传，宿主机本地保存 |
-| 小团队临时沟通 | 简单群聊，刷新后消息仍在 |
-| 不想把文件传到云端 | 数据只写入本机 `data/` 目录 |
+| `EASY_LOCALHUB_ROOM_CODE` | 无交互设置房间码。 |
+| `EASY_LOCALHUB_ROOM_NAME` | 无交互设置房间名。 |
+| `EASY_LOCALHUB_SERVICE=1` | 将 easy-LocalHub 安装为 systemd 用户服务。 |
+| `OPENCLAW_SKIP_ONBOARD=1` | 只完成 LocalHub/OpenClaw 安装，跳过交互式 onboarding。 |
+
+OpenClaw 官方安装说明：<https://docs.openclaw.ai/install>
+
+---
+
+## ✨ 你会喜欢它的原因
+
+| 用户场景 | 产品价值 |
+| --- | --- |
+| 会前 1 分钟临时发资料 | 不建群、不传云盘，打开 LAN 地址就能取文件。 |
+| 手机、平板、电脑互传 | 浏览器上传，宿主机保存，跨平台无客户端。 |
+| 临时讨论和资料沉淀 | 聊天 JSONL 持久化，刷新后仍可查看。 |
+| 文件夹原样转移 | 拖拽整个文件夹上传，保留目录结构。 |
+| 本地优先 | 文件和消息默认只写入当前机器的 `data/`。 |
+| 自动化部署 | OpenClaw/脚本可一键安装、启动、设置。 |
+
+---
+
+## ✅ 2.0.0 更新重点
+
+- **修复中文文件名下载失败**：`Content-Disposition` 对非 ASCII 文件名使用 RFC 5987 `filename*` 编码，同时提供 ASCII fallback，避免 Node.js 抛出 `ERR_INVALID_CHAR`。
+- **OpenClaw 集成**：新增 `openclaw-setup.sh` 和 `bash install.sh --openclaw`，让机器人可通过代码完成安装、启动和设置。
+- **文档重构**：中英文 README 以“立即使用 + OpenClaw 入口 + 产品价值”的结构展示。
+- **版本升级**：应用版本更新为 `2.0.0`，健康检查返回版本号，前端页脚显示版本号。
 
 ---
 
 ## 🎯 功能地图
 
 - 📂 **文件中转**：拖拽上传文件或整个文件夹，保留目录结构。
+- ⬇️ **可靠下载**：支持中文、空格和常见符号文件名下载。
 - 💬 **群聊消息**：聊天记录以 JSONL 持久化，刷新不丢失。
 - 🔑 **房间码校验**：加入接口由服务端校验房间码，健康检查不暴露房间码。
 - 📱 **全平台访问**：Windows / macOS / Linux / iOS / Android 的现代浏览器均可使用。
@@ -46,71 +123,15 @@
 
 ## 🖼️ 架构图解
 
-### 1. 局域网协作架构
-
 ![easy-LocalHub architecture](docs/images/architecture.svg)
 
-### 2. 从部署到协作的流程
-
 ![easy-LocalHub workflow](docs/images/workflow.svg)
-
-### 3. 数据边界与安全加固
 
 ![easy-LocalHub security and data boundaries](docs/images/security-data.svg)
 
 ---
 
-## 🚀 快速开始
-
-```bash
-# 1. 克隆到你的电脑
-git clone https://github.com/zeyuShawn/easy-LocalHub.git
-cd easy-LocalHub
-
-# 2. 首次安装并设置房间码
-bash install.sh
-
-# 3. 启动服务
-node server.mjs
-```
-
-启动后终端会打印类似：
-
-```text
-🚀 easy-LocalHub running!
-   Local:   http://localhost:8080/
-   LAN:     http://192.168.1.100:8080/
-
-🔑 Room code: 123456
-```
-
-把 **LAN 地址** 和 **房间码** 发给同一 Wi‑Fi 下的参与者：
-
-1. 浏览器打开 LAN 地址。
-2. 输入房间码。
-3. 设置昵称。
-4. 开始聊天、上传或下载文件。
-
----
-
-## 🔧 开机自动启动（可选）
-
-```bash
-bash install.sh --service
-```
-
-安装为 systemd 用户服务后，可用以下命令管理：
-
-```bash
-systemctl --user status easy-localhub    # 查看状态
-systemctl --user restart easy-localhub   # 重启
-systemctl --user stop easy-localhub      # 停止
-journalctl --user -u easy-localhub -f    # 查看日志
-```
-
----
-
-## ⚙️ 配置说明
+## ⚙️ 配置与运维
 
 `install.sh` 首次运行时会引导你设置，也可以手动编辑 `config.json`：
 
@@ -122,37 +143,13 @@ journalctl --user -u easy-localhub -f    # 查看日志
 }
 ```
 
-| 字段 | 说明 |
-| --- | --- |
-| `roomCode` | 房间码，加入房间和访问房间 API 时需要匹配。 |
-| `roomName` | 房间显示名称。 |
-| `ports` | 候选端口列表，服务会自动使用第一个可用端口。 |
+安装为 systemd 用户服务：
 
----
-
-## 📁 项目结构
-
-```text
-easy-LocalHub/
-├── server.mjs                 # HTTP 服务（零依赖 Node.js）
-├── public/
-│   └── index.html             # 前端 SPA（聊天 + 文件管理）
-├── docs/
-│   └── images/                # README 图解 SVG
-├── install.sh                 # 首次部署 + 可选 systemd 服务
-├── generate-guide.sh          # 生成 HTML/PDF 使用指南
-├── config.example.json        # 配置示例
-├── easy-LocalHub-Guide.pdf    # 使用指南 PDF
-├── README.md                  # 中文说明
-├── README.en.md               # English README
-└── LICENSE                    # MIT
-```
-
-运行 `install.sh` 后会额外生成：
-
-```text
-├── config.json                # 你的房间码和端口配置（gitignored）
-└── data/                      # 聊天记录、上传文件、运行端口（gitignored）
+```bash
+bash install.sh --service
+systemctl --user status easy-localhub
+systemctl --user restart easy-localhub
+journalctl --user -u easy-localhub -f
 ```
 
 ---
@@ -161,7 +158,7 @@ easy-LocalHub/
 
 | 能力 | 路径 | 说明 |
 | --- | --- | --- |
-| 健康检查 | `GET /api/health` | 返回服务状态与 LAN IP；不会返回房间码。 |
+| 健康检查 | `GET /api/health` | 返回服务状态、版本号与 LAN IP；不会返回房间码。 |
 | 加入房间 | `POST /api/room/join` | 服务端校验 `roomCode`。 |
 | 拉取消息 | `GET /api/room/:code/messages` | 返回最近消息，默认最多 200 条。 |
 | 发送消息 | `POST /api/room/:code/messages` | 写入 `data/messages/<code>.jsonl`。 |
@@ -171,92 +168,39 @@ easy-LocalHub/
 
 ---
 
+## 📁 项目结构
+
+```text
+easy-LocalHub/
+├── server.mjs                 # HTTP 服务（零依赖 Node.js）
+├── public/index.html          # 前端 SPA（聊天 + 文件管理）
+├── docs/images/               # README 图解 SVG
+├── install.sh                 # 首次部署 + systemd + OpenClaw 入口
+├── openclaw-setup.sh          # OpenClaw/机器人一键安装、启动、设置脚本
+├── config.example.json        # 配置示例
+├── README.md                  # 中文说明
+├── README.en.md               # English README
+└── LICENSE                    # MIT
+```
+
+运行后会额外生成：
+
+```text
+├── config.json                # 你的房间码和端口配置（gitignored）
+└── data/                      # 聊天记录、上传文件、运行端口、日志（gitignored）
+```
+
+---
+
 ## 🛡️ 安全边界
 
-### 已做的基础防护
-
-- 健康检查接口不返回房间码，避免任何打开页面的人直接看到访问凭据。
-- 前端加入房间时调用服务端 `POST /api/room/join`，不再只做客户端比较。
-- 上传与下载路径会经过相对路径清理和 `safeJoin` 目录边界校验，降低路径逃逸风险。
-- JSON 请求体、用户名、消息文本都有大小/长度限制，避免明显的滥用输入。
-- 响应附带 `X-Content-Type-Options: nosniff`、`Referrer-Policy: no-referrer` 和 `Cache-Control: no-store`。
-
-### 仍需你注意
-
-- 本项目定位为 **可信局域网工具**，不是公网文件站。
-- 房间码是主要访问控制，请设置成不易猜测的值并只发给可信成员。
-- 上传文件不会做病毒扫描；下载和打开前请自行判断来源。
-- 如需公网访问，请务必额外添加 HTTPS、反向代理鉴权、访问日志、速率限制和病毒扫描。
+- 建议只在可信局域网内使用，不要直接暴露到公网。
+- 房间码适合作为轻量访问门槛，不等同于完整账号系统。
+- 上传文件会保存在宿主机本地，请定期清理 `data/uploads/`。
+- OpenClaw 具备自动化能力，建议使用专用 API Key/账号，并遵循最小权限原则。
 
 ---
 
-## 📖 使用说明 PDF
-
-项目内置 PDF 使用指南生成脚本：
-
-```bash
-bash generate-guide.sh
-# 生成: easy-LocalHub-Guide.pdf
-```
-
-若环境没有 PDF 转换器，脚本会保留 HTML 指南，你也可以在浏览器中打开后打印为 PDF。
-
----
-
-## ✅ 环境要求
-
-| 角色 | 要求 |
-| --- | --- |
-| 服务端 | Node.js 18+；Linux 推荐 Debian/Ubuntu；macOS/Windows 可手动运行 `node server.mjs`。 |
-| 客户端 | 任意现代浏览器：Chrome / Safari / Firefox / Edge。 |
-| 网络 | 参与设备和宿主机处于同一局域网，防火墙放行所选端口。 |
-
----
-
-## ❓ 常见问题
-
-<details>
-<summary>其他设备打不开 LAN 地址怎么办？</summary>
-
-- 确认设备在同一 Wi‑Fi / 局域网下。
-- 确认宿主机防火墙放行当前端口（默认 8080）。
-- 检查终端打印的 LAN 地址是否为当前网络网卡地址。
-
-</details>
-
-<details>
-<summary>端口被占用怎么办？</summary>
-
-服务会按 `config.json` 的 `ports` 顺序尝试端口。你可以添加更多候选端口：
-
-```json
-{
-  "ports": [8080, 8081, 8090, 9000]
-}
-```
-
-</details>
-
-<details>
-<summary>上传大文件失败怎么办？</summary>
-
-当前单次上传请求上限为 256 MB。请拆分文件、压缩文件夹，或在可信环境下按需调整 `server.mjs` 中的 `MAX_UPLOAD`。
-
-</details>
-
-<details>
-<summary>数据在哪里？如何清理？</summary>
-
-- 消息：`data/messages/`
-- 文件：`data/uploads/`
-- 当前端口：`data/port.txt`
-
-停止服务后删除对应目录即可清理历史数据。
-
-</details>
-
----
-
-## 📜 License
+## 📄 License
 
 MIT
